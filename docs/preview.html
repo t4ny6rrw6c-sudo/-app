@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>현장 부적합 관리 앱 — 화면 미리보기</title>
+<style>
+/* ── 전체 레이아웃 ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  background: #0F172A;
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+h1.page-title {
+  text-align: center;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+p.page-sub {
+  text-align: center;
+  color: #94A3B8;
+  font-size: 13px;
+  margin-bottom: 32px;
+}
+
+/* ── 탭 선택기 ── */
+.screen-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.screen-tab {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 1.5px solid #334155;
+  background: transparent;
+  color: #94A3B8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.screen-tab.active { background: #1A56DB; color: #fff; border-color: #1A56DB; }
+.screen-tab:hover:not(.active) { border-color: #64748B; color: #CBD5E1; }
+
+/* ── 폰 프레임 ── */
+.phones-row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.phone-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.phone-label {
+  color: #94A3B8;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+.phone {
+  width: 320px;
+  height: 640px;
+  background: #1E293B;
+  border-radius: 46px;
+  padding: 16px 14px;
+  box-shadow:
+    0 0 0 2px #334155,
+    0 0 0 8px #0F172A,
+    0 24px 60px rgba(0,0,0,0.6);
+  position: relative;
+  overflow: hidden;
+}
+.phone::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 28px;
+  background: #1E293B;
+  border-radius: 0 0 18px 18px;
+  z-index: 10;
+}
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  border-radius: 34px;
+  overflow: hidden;
+  background: #F5F7FA;
+  display: none;
+  flex-direction: column;
+  font-size: 11px;
+}
+.phone-screen.active { display: flex; }
+
+/* ── 공통 앱 스타일 ── */
+:root {
+  --p: #1A56DB;
+  --danger: #E74C3C;
+  --warn: #F39C12;
+  --ok: #27AE60;
+  --bg: #F5F7FA;
+  --card: #fff;
+  --text: #1A1A2E;
+  --muted: #6B7280;
+  --border: #E5E7EB;
+  --nav: 54px;
+}
+.app-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.scroll-area { flex: 1; overflow-y: auto; scrollbar-width: none; }
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* 히어로 */
+.hero { background: linear-gradient(135deg, #1A56DB, #2563EB); padding: 20px 16px 16px; padding-top: 36px; }
+.hero h1 { font-size: 17px; font-weight: 800; color: #fff; }
+.hero p  { font-size: 10px; color: rgba(255,255,255,.7); margin-top: 1px; }
+.stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; padding: 10px 12px; background: #fff; }
+.stat { text-align: center; background: #F5F7FA; border-radius: 8px; padding: 7px 3px; }
+.stat-n { font-size: 16px; font-weight: 800; }
+.stat-l { font-size: 9px; color: #888; margin-top: 1px; }
+
+/* NC 카드 */
+.nc-list { padding: 8px 10px; display: flex; flex-direction: column; gap: 8px; }
+.nc-card { background: #fff; border-radius: 12px; display: flex; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+.nc-bar { width: 4px; flex-shrink: 0; }
+.nc-body { flex: 1; padding: 10px 12px; }
+.nc-top { display: flex; justify-content: space-between; align-items: center; }
+.nc-id { font-size: 9px; font-weight: 700; color: var(--p); }
+.pill { font-size: 9px; font-weight: 700; color: #fff; padding: 2px 7px; border-radius: 8px; }
+.nc-area { font-size: 12px; font-weight: 700; color: var(--text); margin-top: 2px; }
+.nc-desc { font-size: 10px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nc-bot { display: flex; justify-content: space-between; margin-top: 6px; }
+.nc-cat { font-size: 9px; color: var(--muted); }
+.nc-date { font-size: 9px; color: #AAA; }
+.nc-due { font-size: 9px; color: var(--danger); margin-top: 2px; }
+.sec-label { padding: 6px 12px 2px; font-size: 10px; font-weight: 700; color: var(--muted); }
+
+/* 탭 바 */
+.nav-bar { height: var(--nav); background: #fff; display: flex; border-top: 1px solid #EEE; flex-shrink: 0; }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: none; background: none; cursor: pointer; }
+.nav-btn.on .nav-ico { opacity: 1; }
+.nav-btn.on .nav-lbl { color: var(--p); }
+.nav-ico { font-size: 16px; opacity: .45; }
+.nav-lbl { font-size: 9px; font-weight: 600; color: var(--muted); }
+.nav-btn.on .nav-ico { opacity: 1; }
+
+/* 폼 */
+.page-hdr { padding: 14px 14px 6px; padding-top: 36px; }
+.page-hdr h2 { font-size: 15px; font-weight: 700; }
+.form-card { background: #fff; border-radius: 12px; padding: 12px; margin: 8px 10px 0; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.card-ttl { font-size: 11px; font-weight: 700; margin-bottom: 8px; }
+.field-lbl { font-size: 9px; color: var(--muted); font-weight: 600; margin: 6px 0 3px; }
+.field-in { width: 100%; padding: 7px 9px; border: 1.5px solid #E0E0E0; border-radius: 6px; font-size: 11px; color: var(--text); background: #FAFAFA; font-family: inherit; }
+.field-ta { resize: none; height: 52px; }
+.chip-row { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
+.chip { padding: 5px 9px; border-radius: 14px; border: 1.5px solid #E0E0E0; font-size: 10px; font-weight: 600; cursor: pointer; background: #F5F5F5; color: #555; }
+.chip.on { color: #fff; border-color: transparent; }
+.sev-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; }
+.sev-btn { padding: 7px 3px; border-radius: 7px; border: 1.5px solid #E0E0E0; font-size: 10px; font-weight: 700; text-align: center; background: #F5F5F5; color: #555; }
+.sev-btn.on { color: #fff; border-color: transparent; }
+.check-item { padding: 7px 0; border-bottom: 1px solid #F5F5F5; }
+.check-item:last-child { border: none; }
+.check-txt { font-size: 10px; color: var(--text); line-height: 15px; margin-bottom: 4px; }
+.check-btns { display: flex; gap: 4px; }
+.cbtn { padding: 3px 9px; border-radius: 6px; border: 1px solid #DDD; background: #F5F5F5; font-size: 9px; font-weight: 700; color: #777; }
+.cbtn.ok  { background: var(--ok);     color: #fff; border-color: var(--ok); }
+.cbtn.ng  { background: var(--danger); color: #fff; border-color: var(--danger); }
+.cbtn.na  { background: #95A5A6;       color: #fff; border-color: #95A5A6; }
+.gps-btn { width: 100%; padding: 9px; border: 1.5px solid var(--p); border-radius: 7px; background: #EBF3FF; color: var(--p); font-size: 10px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.sig-box { height: 70px; border: 1.5px dashed var(--p); border-radius: 7px; background: #EBF3FF; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--p); font-weight: 600; }
+.save-btn { margin: 10px 10px 0; background: var(--p); color: #fff; border: none; border-radius: 12px; padding: 12px; width: calc(100% - 20px); font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; }
+
+/* 샘플 그리드 */
+.sample-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding: 8px 10px; }
+.sample-card { background: #fff; border-radius: 12px; padding: 12px; border-left: 4px solid; box-shadow: 0 2px 8px rgba(0,0,0,.06); cursor: pointer; }
+.sico { font-size: 22px; margin-bottom: 4px; }
+.sname { font-size: 12px; font-weight: 700; }
+.scnt { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.sdesc { font-size: 9px; color: var(--muted); margin-top: 4px; line-height: 13px; }
+
+/* 샘플 상세 */
+.sample-detail { background: #fff; margin: 8px 10px 0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.sd-hdr { padding: 10px 12px; display: flex; align-items: center; gap: 8px; }
+.sd-title { font-size: 12px; font-weight: 700; color: #fff; }
+.sd-sub { font-size: 9px; color: rgba(255,255,255,.8); margin-top: 1px; }
+.legal-box { margin: 8px 10px 0; background: #EBF5FB; border-left: 3px solid #3498DB; padding: 7px 9px; border-radius: 7px; font-size: 9px; color: #2980B9; line-height: 14px; }
+.item-list { padding: 6px 10px; display: flex; flex-direction: column; gap: 5px; }
+.item-row { display: flex; align-items: flex-start; gap: 7px; background: #fff; border-radius: 8px; padding: 8px 10px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+.item-num { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+.item-txt { flex: 1; font-size: 10px; color: var(--text); line-height: 15px; }
+
+/* 이력 */
+.filter-row { display: flex; gap: 5px; padding: 8px 10px; }
+.fbtn { flex: 1; padding: 6px 3px; border-radius: 7px; border: 1px solid #E0E0E0; background: #F5F5F5; font-size: 9px; font-weight: 700; color: var(--muted); text-align: center; cursor: pointer; }
+.fbtn.on { background: var(--p); color: #fff; border-color: var(--p); }
+
+/* 상세 화면 */
+.detail-nav { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; padding-top: 36px; background: #fff; border-bottom: 1px solid #EEE; }
+.back-btn { font-size: 11px; color: var(--p); font-weight: 600; }
+.del-btn  { font-size: 11px; color: var(--danger); font-weight: 600; }
+.nav-ttl  { font-size: 13px; font-weight: 700; }
+.badges { display: flex; gap: 5px; margin-bottom: 8px; }
+.id-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.nc-id2 { font-size: 10px; font-weight: 700; color: var(--p); }
+.nc-dt  { font-size: 10px; color: #888; }
+.d-card { background: #fff; border-radius: 12px; padding: 11px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.d-row  { display: flex; padding: 5px 0; border-bottom: 1px solid #F5F5F5; }
+.d-row:last-child { border: none; }
+.d-lbl  { width: 60px; font-size: 9px; color: #888; font-weight: 600; }
+.d-val  { flex: 1; font-size: 10px; color: var(--text); }
+.sec-hdr { font-size: 11px; font-weight: 700; margin: 8px 0 5px; }
+.content-box { background: #F8F9FA; padding: 8px 10px; border-radius: 7px; font-size: 10px; color: var(--text); line-height: 16px; }
+.check-d { display: flex; align-items: flex-start; gap: 5px; padding: 4px 0; border-bottom: 1px solid #F0F0F0; }
+.cmark { font-size: 11px; }
+.ctxt  { font-size: 10px; line-height: 15px; }
+
+/* 상태 버튼 */
+.status-row { display: flex; gap: 5px; margin-bottom: 10px; }
+.stbtn { flex: 1; padding: 7px 3px; border-radius: 8px; border: 1.5px solid #DDD; font-size: 9px; font-weight: 700; text-align: center; background: #fff; color: #888; }
+.stbtn.on { background: #FDEDEC; border-color: var(--danger); color: var(--danger); }
+
+/* 발송 카드 */
+.send-grid { display: flex; flex-direction: column; gap: 7px; margin-bottom: 10px; }
+.send-row  { display: flex; gap: 7px; }
+.send-card { flex: 1; background: #fff; border-radius: 12px; padding: 11px; text-align: center; border-top: 4px solid; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.send-ico  { font-size: 20px; margin-bottom: 3px; }
+.send-ttl  { font-size: 11px; font-weight: 700; color: var(--text); }
+.send-sub  { font-size: 9px; color: var(--muted); margin-top: 2px; }
+.send-full { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.info-box { background: #EBF5FB; border-left: 3px solid #3498DB; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; }
+.info-txt  { font-size: 9px; color: #2980B9; line-height: 15px; }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">📋 현장 부적합 관리 앱</h1>
+<p class="page-sub">화면을 선택하여 각 탭의 미리보기를 확인하세요</p>
+
+<!-- 탭 선택기 -->
+<div class="screen-tabs">
+  <button class="screen-tab active" onclick="showScreen('home')">🏠 홈</button>
+  <button class="screen-tab" onclick="showScreen('new')">➕ 새 부적합</button>
+  <button class="screen-tab" onclick="showScreen('samples')">📌 점검 샘플</button>
+  <button class="screen-tab" onclick="showScreen('history')">📂 이력</button>
+  <button class="screen-tab" onclick="showScreen('detail')">🔍 상세 · 발송</button>
+</div>
+
+<div class="phones-row" id="phonesRow">
+
+  <!-- ① 홈 화면 -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen active" id="screen-home">
+        <!-- 히어로 -->
+        <div class="hero">
+          <h1>현장 부적합 관리</h1>
+          <p>Field Non-Conformance App</p>
+        </div>
+        <!-- 통계 -->
+        <div class="stats">
+          <div class="stat"><div class="stat-n" style="color:#E74C3C">3</div><div class="stat-l">미조치</div></div>
+          <div class="stat"><div class="stat-n" style="color:#F39C12">1</div><div class="stat-l">조치 중</div></div>
+          <div class="stat"><div class="stat-n" style="color:#27AE60">2</div><div class="stat-l">완료</div></div>
+          <div class="stat"><div class="stat-n" style="color:#1A56DB">6</div><div class="stat-l">전체</div></div>
+        </div>
+        <!-- 목록 -->
+        <div class="app-body">
+          <div class="scroll-area">
+            <div class="sec-label">부적합 목록</div>
+            <div class="nc-list">
+              <div class="nc-card">
+                <div class="nc-bar" style="background:#E74C3C"></div>
+                <div class="nc-body">
+                  <div class="nc-top">
+                    <span class="nc-id">NC-1A2B3C-D4E</span>
+                    <span class="pill" style="background:#E74C3C">미조치</span>
+                  </div>
+                  <div class="nc-area">3공구 A동 2층</div>
+                  <div class="nc-desc">안전난간 미설치 — 비계 작업발판 가장자리...</div>
+                  <div class="nc-bot">
+                    <span class="nc-cat">🏗️ 비계</span>
+                    <span class="nc-date">2026-06-23</span>
+                  </div>
+                  <div class="nc-due">⏰ 조치기한: 2026-06-25</div>
+                </div>
+              </div>
+              <div class="nc-card">
+                <div class="nc-bar" style="background:#E67E22"></div>
+                <div class="nc-body">
+                  <div class="nc-top">
+                    <span class="nc-id">NC-5F6G7H-I8J</span>
+                    <span class="pill" style="background:#F39C12">조치 중</span>
+                  </div>
+                  <div class="nc-area">B동 지하 기계실</div>
+                  <div class="nc-desc">화기작업 허가서 미발급 상태로 용접 진행...</div>
+                  <div class="nc-bot">
+                    <span class="nc-cat">🔥 화기작업</span>
+                    <span class="nc-date">2026-06-22</span>
+                  </div>
+                </div>
+              </div>
+              <div class="nc-card">
+                <div class="nc-bar" style="background:#8E44AD"></div>
+                <div class="nc-body">
+                  <div class="nc-top">
+                    <span class="nc-id">NC-K9L0M1-N2O</span>
+                    <span class="pill" style="background:#E74C3C">미조치</span>
+                  </div>
+                  <div class="nc-area">C구역 맨홀 MH-07</div>
+                  <div class="nc-desc">밀폐공간 산소농도 미측정 진입 발견...</div>
+                  <div class="nc-bot">
+                    <span class="nc-cat">⛔ 밀폐공간</span>
+                    <span class="nc-date">2026-06-21</span>
+                  </div>
+                  <div class="nc-due">⏰ 조치기한: 2026-06-23</div>
+                </div>
+              </div>
+              <div class="nc-card">
+                <div class="nc-bar" style="background:#27AE60"></div>
+                <div class="nc-body">
+                  <div class="nc-top">
+                    <span class="nc-id">NC-P3Q4R5-S6T</span>
+                    <span class="pill" style="background:#27AE60">완료</span>
+                  </div>
+                  <div class="nc-area">전기실 D-1</div>
+                  <div class="nc-desc">임시 배선 절연 피복 손상 발견...</div>
+                  <div class="nc-bot">
+                    <span class="nc-cat">⚡ 전기작업</span>
+                    <span class="nc-date">2026-06-20</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 탭 바 -->
+        <div class="nav-bar">
+          <button class="nav-btn on"><span class="nav-ico">🏠</span><span class="nav-lbl">홈</span></button>
+          <button class="nav-btn"><span class="nav-ico">➕</span><span class="nav-lbl">새 부적합</span></button>
+          <button class="nav-btn"><span class="nav-ico">📌</span><span class="nav-lbl">점검 샘플</span></button>
+          <button class="nav-btn"><span class="nav-ico">📂</span><span class="nav-lbl">이력</span></button>
+        </div>
+      </div>
+
+      <!-- ② 새 부적합 폼 -->
+      <div class="phone-screen" id="screen-new">
+        <div class="app-body">
+          <div class="scroll-area">
+            <div class="page-hdr"><h2>새 부적합 발행</h2></div>
+            <!-- 기본정보 -->
+            <div class="form-card">
+              <div class="card-ttl">📋 기본 정보</div>
+              <div class="field-lbl">발행일 *</div>
+              <input class="field-in" value="2026-06-23" readonly />
+              <div class="field-lbl">점검 구역 *</div>
+              <input class="field-in" value="3공구 A동 2층" readonly />
+              <div class="field-lbl">점검자 *</div>
+              <input class="field-in" value="김안전" readonly />
+            </div>
+            <!-- 분류 -->
+            <div class="form-card">
+              <div class="card-ttl">🏷️ 점검 분류</div>
+              <div class="chip-row">
+                <div class="chip on" style="background:#FF6B35;color:#fff">🏗️ 비계</div>
+                <div class="chip">🔥 화기</div>
+                <div class="chip">⛔ 밀폐</div>
+                <div class="chip">⚡ 전기</div>
+                <div class="chip">🪜 고소</div>
+                <div class="chip">🚧 중장비</div>
+              </div>
+            </div>
+            <!-- 중요도 -->
+            <div class="form-card">
+              <div class="card-ttl">⚠️ 중요도</div>
+              <div class="sev-row">
+                <div class="sev-btn">낮음</div>
+                <div class="sev-btn">보통</div>
+                <div class="sev-btn on" style="background:#E67E22;color:#fff">높음</div>
+                <div class="sev-btn">긴급</div>
+              </div>
+            </div>
+            <!-- 내용 -->
+            <div class="form-card">
+              <div class="card-ttl">🔴 부적합 내용</div>
+              <div class="field-lbl">부적합 내용 *</div>
+              <textarea class="field-in field-ta" readonly>비계 2층 작업발판 가장자리 안전난간 미설치, 작업자 추락 위험</textarea>
+              <div class="field-lbl">조치 요청사항</div>
+              <textarea class="field-in field-ta" style="height:38px" readonly>즉시 작업 중지 및 안전난간 설치</textarea>
+              <div class="field-lbl">조치 기한</div>
+              <input class="field-in" value="2026-06-25" readonly />
+            </div>
+            <!-- 체크리스트 -->
+            <div class="form-card">
+              <div class="card-ttl">✅ 체크리스트 (비계)</div>
+              <div class="check-item">
+                <div class="check-txt">비계 기둥 간격 적정 여부 (1.5m 이하)</div>
+                <div class="check-btns"><div class="cbtn ok">적합</div><div class="cbtn">부적합</div><div class="cbtn">N/A</div></div>
+              </div>
+              <div class="check-item">
+                <div class="check-txt">안전난간 설치 여부 (높이 90cm 이상)</div>
+                <div class="check-btns"><div class="cbtn">적합</div><div class="cbtn ng">부적합</div><div class="cbtn">N/A</div></div>
+              </div>
+              <div class="check-item">
+                <div class="check-txt">발끝막이판 설치 여부 (10cm 이상)</div>
+                <div class="check-btns"><div class="cbtn">적합</div><div class="cbtn">부적합</div><div class="cbtn na">N/A</div></div>
+              </div>
+            </div>
+            <!-- GPS / 서명 -->
+            <div class="form-card">
+              <div class="card-ttl">📍 GPS 위치</div>
+              <button class="gps-btn">✅ 37.56543, 126.97865</button>
+            </div>
+            <div class="form-card">
+              <div class="card-ttl">✍️ 점검자 서명</div>
+              <div class="sig-box">서명 완료</div>
+            </div>
+            <!-- 담당자 -->
+            <div class="form-card">
+              <div class="card-ttl">👤 발송 담당자 정보</div>
+              <div class="field-lbl">담당자 이름 *</div>
+              <input class="field-in" value="박시설" readonly />
+              <div class="field-lbl">담당자 연락처 *</div>
+              <input class="field-in" value="010-1234-5678" readonly />
+              <div class="field-lbl">담당자 이메일</div>
+              <input class="field-in" value="park@company.com" readonly />
+            </div>
+            <button class="save-btn">💾 부적합 저장</button>
+            <div style="height:16px"></div>
+          </div>
+        </div>
+        <div class="nav-bar">
+          <button class="nav-btn"><span class="nav-ico">🏠</span><span class="nav-lbl">홈</span></button>
+          <button class="nav-btn on"><span class="nav-ico">➕</span><span class="nav-lbl">새 부적합</span></button>
+          <button class="nav-btn"><span class="nav-ico">📌</span><span class="nav-lbl">점검 샘플</span></button>
+          <button class="nav-btn"><span class="nav-ico">📂</span><span class="nav-lbl">이력</span></button>
+        </div>
+      </div>
+
+      <!-- ③ 점검 샘플 -->
+      <div class="phone-screen" id="screen-samples">
+        <div class="app-body">
+          <div class="scroll-area">
+            <div class="page-hdr">
+              <h2>점검 샘플</h2>
+              <p style="font-size:10px;color:#888;margin-top:3px">카테고리를 선택하면 점검 항목을 확인합니다</p>
+            </div>
+            <div class="sample-grid">
+              <div class="sample-card" style="border-left-color:#FF6B35">
+                <div class="sico">🏗️</div><div class="sname">비계</div>
+                <div class="scnt">12개 항목</div>
+                <div class="sdesc">비계 설치·해체 및 사용 중 안전 점검</div>
+              </div>
+              <div class="sample-card" style="border-left-color:#E74C3C">
+                <div class="sico">🔥</div><div class="sname">화기작업</div>
+                <div class="scnt">12개 항목</div>
+                <div class="sdesc">용접·용단 등 화기 사용 작업 점검</div>
+              </div>
+              <div class="sample-card" style="border-left-color:#8E44AD">
+                <div class="sico">⛔</div><div class="sname">밀폐공간</div>
+                <div class="scnt">12개 항목</div>
+                <div class="sdesc">맨홀·탱크·터널 등 밀폐공간 점검</div>
+              </div>
+              <div class="sample-card" style="border-left-color:#F39C12">
+                <div class="sico">⚡</div><div class="sname">전기작업</div>
+                <div class="scnt">12개 항목</div>
+                <div class="sdesc">전기 설비 점검·유지보수 작업</div>
+              </div>
+              <div class="sample-card" style="border-left-color:#27AE60">
+                <div class="sico">🪜</div><div class="sname">고소작업</div>
+                <div class="scnt">12개 항목</div>
+                <div class="sdesc">2m 이상 고소 장소 작업 점검</div>
+              </div>
+              <div class="sample-card" style="border-left-color:#2980B9">
+                <div class="sico">🚧</div><div class="sname">중장비</div>
+                <div class="scnt">12개 항목</div>
+                <div class="sdesc">크레인·지게차·굴착기 안전 점검</div>
+              </div>
+            </div>
+            <!-- 샘플 항목 (비계 예시) -->
+            <div class="sec-label" style="margin-top:4px">🏗️ 비계 — 상세 항목 예시</div>
+            <div class="legal-box">📜 근거: 산업안전보건기준에 관한 규칙 제55~76조</div>
+            <div class="item-list">
+              <div class="item-row"><div class="item-num" style="background:#FF6B35">1</div><div class="item-txt">비계 기둥 간격 적정 여부 (1.5m 이하)</div></div>
+              <div class="item-row"><div class="item-num" style="background:#FF6B35">2</div><div class="item-txt">안전난간 설치 여부 (높이 90cm 이상)</div></div>
+              <div class="item-row"><div class="item-num" style="background:#FF6B35">3</div><div class="item-txt">중간 난간대 설치 여부 (45cm 위치)</div></div>
+              <div class="item-row"><div class="item-num" style="background:#FF6B35">4</div><div class="item-txt">발끝막이판 설치 여부 (10cm 이상)</div></div>
+              <div class="item-row"><div class="item-num" style="background:#FF6B35">5</div><div class="item-txt">수직보호망 및 안전망 설치 여부</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="nav-bar">
+          <button class="nav-btn"><span class="nav-ico">🏠</span><span class="nav-lbl">홈</span></button>
+          <button class="nav-btn"><span class="nav-ico">➕</span><span class="nav-lbl">새 부적합</span></button>
+          <button class="nav-btn on"><span class="nav-ico">📌</span><span class="nav-lbl">점검 샘플</span></button>
+          <button class="nav-btn"><span class="nav-ico">📂</span><span class="nav-lbl">이력</span></button>
+        </div>
+      </div>
+
+      <!-- ④ 이력 -->
+      <div class="phone-screen" id="screen-history">
+        <div class="app-body">
+          <div class="scroll-area">
+            <div class="page-hdr"><h2>발행 이력</h2><p style="font-size:10px;color:#888;margin-top:3px">총 6건의 부적합 기록</p></div>
+            <div class="filter-row">
+              <div class="fbtn on">전체</div>
+              <div class="fbtn">미조치</div>
+              <div class="fbtn">조치 중</div>
+              <div class="fbtn">완료</div>
+            </div>
+            <div class="nc-list">
+              <div class="nc-card">
+                <div class="nc-bar" style="background:#E74C3C"></div>
+                <div class="nc-body">
+                  <div class="nc-top"><span class="nc-id" style="color:#E74C3C">NC-1A2B3C</span><span class="nc-date">2026-06-23</span></div>
+                  <div class="nc-area">3공구 A동 2층</div>
+                  <div class="nc-desc">안전난간 미설치</div>
+                  <div class="nc-bot"><span class="nc-cat">🏗️ 비계</span><span style="font-size:9px;color:#E74C3C">❌ 부적합 2건</span><span style="font-size:9px;color:#1A56DB">→ 박시설</span></div>
+                </div>
+              </div>
+              <div class="nc-card">
+                <div class="nc-bar" style="background:#E67E22"></div>
+                <div class="nc-body">
+                  <div class="nc-top"><span class="nc-id" style="color:#E67E22">NC-5F6G7H</span><span class="nc-date">2026-06-22</span></div>
+                  <div class="nc-area">B동 지하 기계실</div>
+                  <div class="nc-desc">화기작업 허가서 미발급</div>
+                  <div class="nc-bot"><span class="nc-cat">🔥 화기작업</span><span style="font-size:9px;color:#E74C3C">❌ 부적합 3건</span><span style="font-size:9px;color:#1A56DB">→ 이담당</span></div>
+                </div>
+              </div>
+              <div class="nc-card">
+                <div class="nc-bar" style="background:#27AE60"></div>
+                <div class="nc-body">
+                  <div class="nc-top"><span class="nc-id" style="color:#27AE60">NC-P3Q4R5</span><span class="nc-date">2026-06-20</span></div>
+                  <div class="nc-area">전기실 D-1</div>
+                  <div class="nc-desc">임시 배선 절연 피복 손상</div>
+                  <div class="nc-bot"><span class="nc-cat">⚡ 전기작업</span><span style="font-size:9px;color:#27AE60">✅ 조치완료</span><span style="font-size:9px;color:#1A56DB">→ 최전기</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="nav-bar">
+          <button class="nav-btn"><span class="nav-ico">🏠</span><span class="nav-lbl">홈</span></button>
+          <button class="nav-btn"><span class="nav-ico">➕</span><span class="nav-lbl">새 부적합</span></button>
+          <button class="nav-btn"><span class="nav-ico">📌</span><span class="nav-lbl">점검 샘플</span></button>
+          <button class="nav-btn on"><span class="nav-ico">📂</span><span class="nav-lbl">이력</span></button>
+        </div>
+      </div>
+
+      <!-- ⑤ 상세 · 발송 -->
+      <div class="phone-screen" id="screen-detail">
+        <div class="detail-nav">
+          <span class="back-btn">← 목록</span>
+          <span class="nav-ttl">부적합 상세</span>
+          <span class="del-btn">삭제</span>
+        </div>
+        <div class="app-body">
+          <div class="scroll-area" style="padding:12px">
+            <div class="badges">
+              <span class="pill" style="background:#E67E22">높음</span>
+              <span class="pill" style="background:#FF6B35">비계</span>
+              <span class="pill" style="background:#E74C3C">미조치</span>
+            </div>
+            <div class="id-row"><span class="nc-id2">NC-1A2B3C-D4E</span><span class="nc-dt">2026-06-23</span></div>
+            <div class="d-card">
+              <div class="d-row"><span class="d-lbl">점검 구역</span><span class="d-val">3공구 A동 2층</span></div>
+              <div class="d-row"><span class="d-lbl">점검자</span><span class="d-val">김안전</span></div>
+              <div class="d-row"><span class="d-lbl">조치 기한</span><span class="d-val">2026-06-25</span></div>
+              <div class="d-row"><span class="d-lbl">담당자</span><span class="d-val">박시설 (010-1234-5678)</span></div>
+              <div class="d-row"><span class="d-lbl">이메일</span><span class="d-val">park@company.com</span></div>
+            </div>
+            <div class="sec-hdr">🔴 부적합 내용</div>
+            <div class="content-box" style="margin-bottom:8px">비계 2층 작업발판 가장자리 안전난간 미설치, 작업자 추락 위험</div>
+            <div class="sec-hdr">✅ 조치 요청사항</div>
+            <div class="content-box" style="margin-bottom:8px">즉시 작업 중지 및 안전난간 설치 후 재점검</div>
+            <div class="sec-hdr">체크리스트 — 적합 3 / 부적합 2</div>
+            <div class="d-card" style="margin-bottom:8px">
+              <div class="check-d"><span class="cmark">✅</span><span class="ctxt" style="color:#27AE60">비계 기둥 간격 적정 여부</span></div>
+              <div class="check-d"><span class="cmark">❌</span><span class="ctxt" style="color:#E74C3C">안전난간 설치 여부 (90cm 이상)</span></div>
+              <div class="check-d"><span class="cmark">❌</span><span class="ctxt" style="color:#E74C3C">발끝막이판 설치 여부</span></div>
+              <div class="check-d"><span class="cmark">✅</span><span class="ctxt" style="color:#27AE60">작업발판 폭 40cm 이상 여부</span></div>
+              <div class="check-d"><span class="cmark">➖</span><span class="ctxt" style="color:#95A5A6">비계 경사면 미끄럼 방지 조치</span></div>
+            </div>
+            <!-- GPS -->
+            <div class="sec-hdr">📍 GPS 위치</div>
+            <div class="content-box" style="margin-bottom:8px">위도: 37.56543&emsp;경도: 126.97865</div>
+            <!-- 상태 변경 -->
+            <div class="sec-hdr">📌 상태 변경</div>
+            <div class="status-row">
+              <div class="stbtn on">미조치</div>
+              <div class="stbtn">조치 중</div>
+              <div class="stbtn">완료</div>
+            </div>
+            <!-- 발송 -->
+            <div class="sec-hdr">📤 담당자 발송</div>
+            <p style="font-size:9px;color:#888;margin-bottom:7px">SMS → 이메일 → PDF 공유 순으로 시도합니다</p>
+            <div class="send-grid">
+              <div class="send-row">
+                <div class="send-card" style="border-top-color:#27AE60">
+                  <div class="send-ico">💬</div>
+                  <div class="send-ttl">SMS 발송</div>
+                  <div class="send-sub">010-1234-5678</div>
+                </div>
+                <div class="send-card" style="border-top-color:#1A56DB">
+                  <div class="send-ico">📧</div>
+                  <div class="send-ttl">이메일 발송</div>
+                  <div class="send-sub">park@company.com</div>
+                </div>
+              </div>
+              <div class="send-card send-full" style="border-top-color:#8E44AD">
+                <div class="send-ico">📄</div>
+                <div>
+                  <div class="send-ttl">PDF 공유</div>
+                  <div class="send-sub">PDF 생성 후 공유 앱 선택</div>
+                </div>
+              </div>
+            </div>
+            <div class="info-box">
+              <div class="info-txt">💡 PDF 공유 시 메시지 앱·클라우드·메신저 등<br/>원하는 방법으로 자유롭게 전달할 수 있습니다.</div>
+            </div>
+          </div>
+        </div>
+        <div class="nav-bar">
+          <button class="nav-btn on"><span class="nav-ico">🏠</span><span class="nav-lbl">홈</span></button>
+          <button class="nav-btn"><span class="nav-ico">➕</span><span class="nav-lbl">새 부적합</span></button>
+          <button class="nav-btn"><span class="nav-ico">📌</span><span class="nav-lbl">점검 샘플</span></button>
+          <button class="nav-btn"><span class="nav-ico">📂</span><span class="nav-lbl">이력</span></button>
+        </div>
+      </div>
+
+    </div><!-- /phone -->
+  </div><!-- /phone-wrap -->
+
+</div><!-- /phones-row -->
+
+<!-- 범례 -->
+<div style="text-align:center;margin-top:28px;color:#64748B;font-size:12px;line-height:20px">
+  🟥 높음&nbsp;&nbsp;🟧 보통&nbsp;&nbsp;🟩 낮음&nbsp;&nbsp;⬛ 긴급&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+  🔴 미조치&nbsp;&nbsp;🟡 조치 중&nbsp;&nbsp;🟢 완료<br/>
+  <span style="color:#475569;margin-top:4px;display:block">
+    React Native (Expo) · TypeScript · expo-sms · expo-mail-composer · expo-print · expo-sharing
+  </span>
+</div>
+
+<script>
+function showScreen(name) {
+  document.querySelectorAll('.phone-screen').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.screen-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+</body>
+</html>
