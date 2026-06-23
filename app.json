@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "현장 부적합 관리",
+    "slug": "nonconformance-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      [
+        "expo-camera",
+        { "cameraPermission": "현장 사진 촬영을 위해 카메라 접근이 필요합니다." }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "부적합 사진 첨부를 위해 사진 접근이 필요합니다.",
+          "cameraPermission": "현장 사진 촬영을 위해 카메라 접근이 필요합니다."
+        }
+      ],
+      [
+        "expo-location",
+        { "locationWhenInUsePermission": "현장 GPS 위치 기록을 위해 위치 접근이 필요합니다." }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.facility.nonconformance",
+      "infoPlist": {
+        "NSCameraUsageDescription": "현장 사진 촬영을 위해 카메라 접근이 필요합니다.",
+        "NSPhotoLibraryUsageDescription": "부적합 사진 첨부를 위해 사진 접근이 필요합니다.",
+        "NSLocationWhenInUseUsageDescription": "현장 GPS 위치 기록을 위해 위치 접근이 필요합니다."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1A56DB",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.facility.nonconformance",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "SEND_SMS",
+        "READ_CONTACTS"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
