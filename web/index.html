@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1A56DB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>현장 부적합 관리</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ── 하단 탭 네비게이션 ── -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="nav-item active" onclick="switchTab('home')" data-tab="home">
+        <span class="nav-icon">🏠</span><span class="nav-label">홈</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('new')" data-tab="new">
+        <span class="nav-icon">➕</span><span class="nav-label">새 부적합</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('samples')" data-tab="samples">
+        <span class="nav-icon">📌</span><span class="nav-label">점검 샘플</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('history')" data-tab="history">
+        <span class="nav-icon">📂</span><span class="nav-label">이력</span>
+      </button>
+    </nav>
+
+    <!-- ── 탭 콘텐츠 ── -->
+    <main class="main-wrap">
+
+      <!-- ① 홈 탭 -->
+      <section id="tab-home" class="tab-section active">
+        <div class="hero">
+          <div class="hero-text">
+            <h1>현장 부적합 관리</h1>
+            <p>Field Non-Conformance App</p>
+          </div>
+          <button class="hero-settings" onclick="openSettings()" title="카카오 설정">⚙️</button>
+        </div>
+        <div class="stats-row" id="statsRow"></div>
+        <div class="section-label">부적합 목록</div>
+        <div id="ncList" class="nc-list"></div>
+      </section>
+
+      <!-- ② 새 부적합 탭 -->
+      <section id="tab-new" class="tab-section">
+        <div class="page-header">
+          <h2>새 부적합 발행</h2>
+        </div>
+        <form id="ncForm" onsubmit="submitNC(event)" novalidate>
+
+          <!-- 기본정보 -->
+          <div class="form-card">
+            <div class="card-title">📋 기본 정보</div>
+            <label class="field-label">발행일 *</label>
+            <input type="date" id="f-date" class="field-input" required />
+
+            <label class="field-label">점검 구역 *</label>
+            <input type="text" id="f-area" class="field-input" placeholder="예: 3공구 A동 2층" required />
+
+            <label class="field-label">점검자 *</label>
+            <input type="text" id="f-inspector" class="field-input" placeholder="성명을 입력하세요" required />
+          </div>
+
+          <!-- 분류 -->
+          <div class="form-card">
+            <div class="card-title">🏷️ 점검 분류</div>
+            <div class="chip-row" id="categoryChips"></div>
+          </div>
+
+          <!-- 중요도 -->
+          <div class="form-card">
+            <div class="card-title">⚠️ 중요도</div>
+            <div class="severity-row" id="severityBtns"></div>
+          </div>
+
+          <!-- 부적합 내용 -->
+          <div class="form-card">
+            <div class="card-title">🔴 부적합 내용</div>
+            <label class="field-label">부적합 내용 *</label>
+            <textarea id="f-desc" class="field-input field-textarea" placeholder="부적합 사항을 구체적으로 입력하세요" required></textarea>
+
+            <label class="field-label">조치 요청사항</label>
+            <textarea id="f-action" class="field-input field-textarea short" placeholder="필요한 조치 사항을 입력하세요"></textarea>
+
+            <label class="field-label">조치 기한</label>
+            <input type="date" id="f-due" class="field-input" />
+          </div>
+
+          <!-- 체크리스트 -->
+          <div class="form-card">
+            <div class="card-title">✅ 체크리스트</div>
+            <div id="formChecklist"></div>
+          </div>
+
+          <!-- 사진 -->
+          <div class="form-card">
+            <div class="card-title">📷 현장 사진 <span id="photoCount" class="count-badge">0/5</span></div>
+            <div class="photo-btns">
+              <label class="photo-btn" for="photoCam">
+                <span>📷</span> 촬영
+                <input type="file" id="photoCam" accept="image/*" capture="camera" multiple hidden onchange="addPhotos(this)" />
+              </label>
+              <label class="photo-btn" for="photoLib">
+                <span>🖼️</span> 갤러리
+                <input type="file" id="photoLib" accept="image/*" multiple hidden onchange="addPhotos(this)" />
+              </label>
+            </div>
+            <div id="photoPreview" class="photo-preview"></div>
+          </div>
+
+          <!-- GPS -->
+          <div class="form-card">
+            <div class="card-title">📍 GPS 위치</div>
+            <button type="button" class="gps-btn" id="gpsBtn" onclick="getGPS()">📍 현재 위치 가져오기</button>
+          </div>
+
+          <!-- 서명 -->
+          <div class="form-card">
+            <div class="card-title">✍️ 점검자 서명</div>
+            <div class="sig-box" id="sigBox" onclick="openSignature()">
+              <img id="sigPreview" class="sig-preview hidden" />
+              <span id="sigPlaceholder">서명하기 (터치)</span>
+            </div>
+          </div>
+
+          <!-- 담당자 -->
+          <div class="form-card">
+            <div class="card-title">👤 발송 담당자 정보</div>
+            <label class="field-label">담당자 이름 *</label>
+            <input type="text" id="f-rname" class="field-input" placeholder="담당자 성명" required />
+
+            <label class="field-label">담당자 연락처 *</label>
+            <input type="tel" id="f-rphone" class="field-input" placeholder="010-0000-0000" required />
+          </div>
+
+          <button type="submit" class="btn-primary full">💾 부적합 저장</button>
+          <div style="height:20px"></div>
+        </form>
+      </section>
+
+      <!-- ③ 점검 샘플 탭 -->
+      <section id="tab-samples" class="tab-section">
+        <div class="page-header">
+          <h2>점검 샘플</h2>
+          <p class="page-sub">카테고리를 선택하면 상세 점검 항목을 확인할 수 있습니다</p>
+        </div>
+        <div class="sample-grid" id="sampleGrid"></div>
+      </section>
+
+      <!-- ④ 이력 탭 -->
+      <section id="tab-history" class="tab-section">
+        <div class="page-header">
+          <h2>발행 이력</h2>
+        </div>
+        <div class="filter-row" id="historyFilter">
+          <button class="filter-btn active" onclick="filterHistory('all')" data-filter="all">전체</button>
+          <button class="filter-btn" onclick="filterHistory('open')" data-filter="open">미조치</button>
+          <button class="filter-btn" onclick="filterHistory('in-progress')" data-filter="in-progress">조치 중</button>
+          <button class="filter-btn" onclick="filterHistory('closed')" data-filter="closed">완료</button>
+        </div>
+        <div id="historyList" class="nc-list"></div>
+      </section>
+
+    </main>
+
+    <!-- ── 모달 레이어 ── -->
+    <div id="modalOverlay" class="modal-overlay hidden" onclick="closeModal()"></div>
+    <div id="modalBox" class="modal-box hidden"></div>
+
+    <!-- ── 서명 모달 (별도) ── -->
+    <div id="sigModal" class="sig-modal hidden">
+      <div class="sig-modal-inner">
+        <div class="sig-modal-header">
+          <span>✍️ 점검자 서명</span>
+          <div class="sig-modal-btns">
+            <button onclick="clearSignature()" class="btn-outline-sm">지우기</button>
+            <button onclick="saveSignature()" class="btn-primary-sm">저장</button>
+            <button onclick="closeSigModal()" class="btn-outline-sm">취소</button>
+          </div>
+        </div>
+        <canvas id="sigCanvas" class="sig-canvas"></canvas>
+        <p class="sig-hint">손가락으로 서명해주세요</p>
+      </div>
+    </div>
+
+  </div><!-- #app -->
+
+  <!-- Kakao SDK -->
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
+          integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
+          crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+</body>
+</html>
