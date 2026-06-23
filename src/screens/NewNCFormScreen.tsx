@@ -45,6 +45,7 @@ export default function NewNCFormScreen({ onSaved }: Props) {
   const [severity, setSeverity] = useState<Severity>('medium');
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
+  const [recipientEmail, setRecipientEmail] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
@@ -152,6 +153,7 @@ export default function NewNCFormScreen({ onSaved }: Props) {
         checklistItems,
         recipientName,
         recipientPhone,
+        recipientEmail,
         inspectorSignature: signature,
         createdAt: new Date().toISOString(),
       };
@@ -383,6 +385,16 @@ export default function NewNCFormScreen({ onSaved }: Props) {
             onChangeText={setRecipientPhone}
             placeholder="010-0000-0000"
             keyboardType="phone-pad"
+          />
+
+          <Label text="담당자 이메일" />
+          <TextInput
+            style={styles.input}
+            value={recipientEmail}
+            onChangeText={setRecipientEmail}
+            placeholder="example@company.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
         </View>
 

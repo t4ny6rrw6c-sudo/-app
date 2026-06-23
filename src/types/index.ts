@@ -37,6 +37,7 @@ export interface NonConformance {
   checklistItems: ChecklistItem[];
   recipientName: string;
   recipientPhone: string;
+  recipientEmail: string;
   inspectorSignature: string | null;
   createdAt: string;
 }
